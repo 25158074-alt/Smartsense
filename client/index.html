@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartSense — Building Energy Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1017; --panel:rgba(22,31,43,0.72); --panel-alt:#1C2733; --line:rgba(255,255,255,0.08); --line-strong:rgba(255,255,255,0.14);
+    --text:#EDF2F5; --text-dim:#8CA0AC; --text-faint:#54687A;
+    --amber:#F5B24D; --amber-dim:rgba(245,178,77,0.14); --amber-glow:rgba(245,178,77,0.35);
+    --teal:#4FE0CB; --teal-dim:rgba(79,224,203,0.14); --teal-glow:rgba(79,224,203,0.3);
+    --red:#F16C61; --red-dim:rgba(241,108,97,0.14);
+    --green:#7EDBA3; --green-dim:rgba(126,219,163,0.14); --green-glow:rgba(126,219,163,0.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(79,224,203,0.09), transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(245,178,77,0.08), transparent 40%),
+      linear-gradient(180deg, #0A1017 0%, #0D141C 100%);
+    background-attachment:fixed;
+    color:var(--text); font-family:'IBM Plex Sans', sans-serif;
+    position:relative; overflow-x:hidden;
+  }
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size:36px 36px;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  a{text-decoration:none; color:inherit;}
+  .wrap{max-width:1200px; margin:0 auto; padding:0 32px; position:relative; z-index:1;}
+
+  /* Nav */
+  .site-nav{display:flex; align-items:center; justify-content:space-between; padding:22px 0; border-bottom:1px solid var(--line);}
+  .nav-brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg, var(--teal), var(--amber)); display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px var(--teal-glow); font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#0A1017;}
+  .nav-brand span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; letter-spacing:0.5px;}
+  .nav-links{display:flex; gap:32px;}
+  .nav-link{font-size:14px; color:var(--text-dim); transition:color 0.2s ease;}
+  .nav-link:hover, .nav-link.active{color:var(--text);}
+  .nav-cta{background:linear-gradient(135deg, rgba(79,224,203,0.16), rgba(79,224,203,0.05)); border:1px solid rgba(79,224,203,0.35); color:var(--teal); padding:9px 18px; border-radius:8px; font-size:13.5px; font-weight:500; transition:all 0.2s ease;}
+  .nav-cta:hover{background:rgba(79,224,203,0.25); box-shadow:0 0 20px var(--teal-glow);}
+
+  /* Hero */
+  .hero{
+    position:relative; overflow:hidden; border-radius:20px; background:#050708;
+    border:1px solid var(--line); margin:36px 0; min-height:480px; display:flex;
+    box-shadow:0 24px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .hero::before{
+    content:''; position:absolute; top:0; left:8%; right:8%; height:1px; z-index:3;
+    background:linear-gradient(90deg, transparent, rgba(79,224,203,0.5), rgba(245,178,77,0.4), transparent);
+  }
+  .hero-spotlight{
+    pointer-events:none; position:absolute; width:620px; height:620px; border-radius:50%;
+    background:radial-gradient(circle, rgba(79,224,203,0.16), rgba(245,178,77,0.05) 45%, transparent 72%);
+    left:0; top:0; opacity:0; transition:opacity 0.4s ease; z-index:1; mix-blend-mode:screen;
+  }
+  .hero:hover .hero-spotlight{opacity:1;}
+  .hero-copy{flex:1; padding:60px 52px; position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center;}
+  .hero-eyebrow{
+    display:inline-flex; align-items:center; gap:8px; width:fit-content;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.4px; text-transform:uppercase;
+    color:var(--teal); margin-bottom:22px; background:rgba(79,224,203,0.08); border:1px solid rgba(79,224,203,0.22);
+    padding:7px 14px; border-radius:20px;
+    opacity:0; animation:fadeUpHero 0.6s ease 0.05s forwards;
+  }
+  .live-dot{width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); animation:blink 2s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  @keyframes fadeUpHero{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+  .hero-copy h1{
+    font-family:'Space Grotesk',sans-serif; font-size:48px; font-weight:700; line-height:1.12; letter-spacing:-0.5px;
+    margin-bottom:20px; max-width:480px;
+    opacity:0; animation:fadeUpHero 0.6s ease 0.15s forwards;
+  }
+  .hero-copy h1 .grad{background:linear-gradient(180deg, #F5F8F9, #9DB0BB); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero-copy h1 .accent{background:linear-gradient(120deg, var(--teal), #8FF0E0); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero-copy p{
+    color:var(--text-dim); font-size:15.5px; line-height:1.75; max-width:440px; margin-bottom:30px;
+    opacity:0; animation:fadeUpHero 0.6s ease 0.25s forwards;
+  }
+  .hero-actions{display:flex; gap:14px; margin-bottom:38px; opacity:0; animation:fadeUpHero 0.6s ease 0.35s forwards;}
+  .btn{font-family:'IBM Plex Sans',sans-serif; font-size:14px; font-weight:500; padding:13px 24px; border-radius:9px; cursor:pointer; transition:all 0.22s ease; display:inline-flex; align-items:center; gap:9px;}
+  .btn-primary{background:var(--teal); color:#06201C; border:none; box-shadow:0 0 24px var(--teal-glow), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 4px 30px var(--teal-glow), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .btn-primary svg{transition:transform 0.22s ease;}
+  .btn-primary:hover svg{transform:translateX(3px);}
+  .btn-secondary{background:rgba(255,255,255,0.02); border:1px solid var(--line-strong); color:var(--text);}
+  .btn-secondary:hover{border-color:var(--text-dim); background:rgba(255,255,255,0.05); transform:translateY(-2px);}
+  .hero-stats{display:flex; gap:0; opacity:0; animation:fadeUpHero 0.6s ease 0.45s forwards;}
+  .hero-stats > div{padding-right:26px; margin-right:26px; border-right:1px solid var(--line);}
+  .hero-stats > div:last-child{border-right:none; margin-right:0; padding-right:0;}
+  .hero-stat-value{font-family:'Space Grotesk',sans-serif; font-size:23px; font-weight:600; color:var(--teal); text-shadow:0 0 16px var(--teal-glow);}
+  .hero-stat-label{font-size:11px; color:var(--text-faint); margin-top:3px;}
+  .hero-3d{flex:1; position:relative; z-index:2; min-width:0;}
+  .hero-3d spline-viewer{width:100%; height:100%; display:block;}
+  .hero-chip{
+    position:absolute; top:28px; right:28px; z-index:4;
+    background:rgba(10,16,23,0.55); backdrop-filter:blur(10px); border:1px solid var(--line-strong);
+    border-radius:10px; padding:10px 14px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim);
+    display:flex; align-items:center; gap:8px;
+    opacity:0; animation:fadeUpHero 0.6s ease 0.5s forwards;
+  }
+  .hero-fallback{position:absolute; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:var(--text-faint); font-size:12px; text-align:center; padding:20px;}
+  .hero-fade{position:absolute; left:0; top:0; bottom:0; width:120px; z-index:3; pointer-events:none; background:linear-gradient(90deg, #050708, transparent);}
+  @media (max-width:1000px){ .hero{flex-direction:column; min-height:auto;} .hero-3d{height:300px;} }
+
+  /* Stats strip */
+  .section{padding:60px 0;}
+  .section-label{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-faint); margin-bottom:12px;}
+  .section h2{font-family:'Space Grotesk',sans-serif; font-size:28px; font-weight:600; margin-bottom:14px; max-width:560px;}
+  .section > p.lede{color:var(--text-dim); font-size:15px; max-width:560px; line-height:1.7; margin-bottom:40px;}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .stat-card{background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:14px; padding:26px; box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+  .stat-num{font-family:'Space Grotesk',sans-serif; font-size:34px; font-weight:700; color:var(--amber); text-shadow:0 0 20px var(--amber-glow); margin-bottom:8px;}
+  .stat-card p{color:var(--text-dim); font-size:13.5px; line-height:1.6;}
+
+  /* How it works */
+  .flow-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+  .flow-card{background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:14px; padding:24px; position:relative;}
+  .flow-icon{width:40px; height:40px; border-radius:10px; background:var(--teal-dim); display:flex; align-items:center; justify-content:center; margin-bottom:18px; color:var(--teal);}
+  .flow-card h3{font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; margin-bottom:8px;}
+  .flow-card p{color:var(--text-dim); font-size:13px; line-height:1.6;}
+  .flow-step{position:absolute; top:24px; right:24px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-faint);}
+
+  /* Climate zones */
+  .zone-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .zone-chip{background:var(--panel-alt); border:1px solid var(--line); border-radius:10px; padding:16px 20px; flex:1; min-width:180px;}
+  .zone-chip .zn{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--teal); margin-bottom:6px;}
+  .zone-chip .zd{font-size:13px; color:var(--text-dim);}
+
+  .whynow-card{display:flex; align-items:flex-start; gap:28px; background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:14px; padding:28px 30px; box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+  .whynow-date{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--teal); font-weight:600; white-space:nowrap; flex-shrink:0; padding-top:2px; margin-right:28px;}
+  .whynow-card p{color:var(--text-dim); font-size:13.5px; line-height:1.65; margin:0;}
+
+  .compare-row{display:flex; align-items:flex-start; gap:16px; padding:16px 0; border-bottom:1px solid var(--line);}
+  .compare-row:last-child{border-bottom:none;}
+  .compare-bar{width:4px; border-radius:2px; align-self:stretch; flex-shrink:0; margin-right:12px;}
+  .compare-title{font-family:'Space Grotesk',sans-serif; font-size:14.5px; font-weight:600; min-width:220px; flex-shrink:0; margin-right:16px;}
+  .compare-desc{font-size:13px; color:var(--text-dim); line-height:1.6;}
+  .source-note{font-size:11.5px; color:var(--text-faint); margin-top:16px; font-style:italic;}
+
+  /* CTA banner */
+  .cta-banner{background:linear-gradient(135deg, rgba(79,224,203,0.1), rgba(245,178,77,0.06)); border:1px solid var(--line); border-radius:16px; padding:48px; text-align:center; margin:60px 0;}
+  .cta-banner h2{font-family:'Space Grotesk',sans-serif; font-size:26px; margin-bottom:10px;}
+  .cta-banner p{color:var(--text-dim); margin-bottom:26px;}
+
+  footer{border-top:1px solid var(--line); padding:36px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;}
+  .footer-brand{display:flex; align-items:center; gap:10px; color:var(--text-dim); font-size:13px;}
+  .disclaimer-badge{background:var(--panel-alt); border:1px solid var(--line); color:var(--text-faint); font-size:11.5px; padding:7px 14px; border-radius:20px; font-family:'IBM Plex Mono',monospace;}
+</style>
+  <script src="auth.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand"><div class="brand-mark">S</div><span>SMARTSENSE</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">Home</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="occupant.html" class="nav-link">Occupant view</a>
+    </div>
+    <a href="login.html" class="nav-cta">Get started</a>
+  </nav>
+
+  <div class="hero" id="hero">
+    <div class="hero-spotlight" id="heroSpotlight"></div>
+    <div class="hero-copy">
+      <div class="hero-eyebrow"><span class="live-dot"></span>Live building intelligence</div>
+      <h1><span class="grad">See your building.</span><br><span class="accent">Live.</span></h1>
+      <p>SmartSense turns occupancy, energy, and comfort data into one real-time view — so facility teams act on waste the moment it happens, not at month-end.</p>
+      <div class="hero-actions">
+        <a href="dashboard.html" class="btn btn-primary">View live dashboard <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="occupant.html" class="btn btn-secondary">Try occupant view</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-value">18%</div><div class="hero-stat-label">Energy saved</div></div>
+        <div><div class="hero-stat-value">91</div><div class="hero-stat-label">Comfort score</div></div>
+        <div><div class="hero-stat-value">82</div><div class="hero-stat-label">ECBC index (kWh/m²)</div></div>
+      </div>
+    </div>
+    <div class="hero-fade"></div>
+    <div class="hero-3d" id="hero3d">
+      <div class="hero-chip"><span class="live-dot"></span>Tower 3 · Live</div>
+      <div class="hero-fallback" id="heroFallback">
+        <span>3D scene unavailable offline</span>
+        <span>Full dashboard still runs live below.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">The problem</div>
+    <h2>Most buildings in India run without any real visibility into how they use energy.</h2>
+    <p class="lede">Cooling, lighting, and plug loads are climbing fast as buildings grow — but most facility teams have no live signal on where energy is actually going.</p>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">33%</div><p>of India's total electricity use comes from buildings, and that share keeps rising.</p></div>
+      <div class="stat-card"><div class="stat-num">0</div><p>real-time visibility in most buildings — managers find out about waste only after the bill arrives.</p></div>
+      <div class="stat-card"><div class="stat-num">~40%</div><p>of a typical building's load is flexible enough to shift away from grid peak hours.</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2>Four layers, one live picture of the building.</h2>
+    <p class="lede">Low-cost sensing feeds a scheduling engine, which drives a facility dashboard and talks to the grid — all without touching occupant comfort.</p>
+    <div class="flow-grid">
+      <div class="flow-card">
+        <span class="flow-step">01</span>
+        <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" fill="currentColor"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.4" opacity="0.4"/></svg></div>
+        <h3>Sense</h3>
+        <p>Occupancy, temperature, and air-quality sensors read every zone continuously.</p>
+      </div>
+      <div class="flow-card">
+        <span class="flow-step">02</span>
+        <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="13" cy="13" r="1" fill="currentColor"/></svg></div>
+        <h3>Think</h3>
+        <p>A scheduling engine decides when to trim HVAC and lighting without affecting comfort.</p>
+      </div>
+      <div class="flow-card">
+        <span class="flow-step">03</span>
+        <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><line x1="8" y1="17" x2="12" y2="17" stroke="currentColor" stroke-width="1.4"/></svg></div>
+        <h3>Show</h3>
+        <p>Facility managers get one dashboard: energy, comfort, faults, and ECBC benchmarks.</p>
+      </div>
+      <div class="flow-card">
+        <span class="flow-step">04</span>
+        <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="11,2 4,12 9,12 8,18 15,8 10,8" fill="currentColor"/></svg></div>
+        <h3>Shift</h3>
+        <p>Flexible loads move off-peak automatically when the grid signals demand response.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Built for India</div>
+    <h2>Tuned to local climate zones and the ECBC code, not a generic global model.</h2>
+    <div class="zone-row">
+      <div class="zone-chip"><div class="zn">HOT-DRY</div><div class="zd">Pre-cooling before peak heat, tight solar-load control</div></div>
+      <div class="zone-chip"><div class="zn">WARM-HUMID</div><div class="zd">Dehumidification-aware scheduling to protect comfort</div></div>
+      <div class="zone-chip"><div class="zn">COMPOSITE</div><div class="zd">Seasonal setpoints that shift with monsoon and winter</div></div>
+      <div class="zone-chip"><div class="zn">COLD</div><div class="zd">Heating-load optimisation for hill and northern regions</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Why now</div>
+    <h2>A regulatory tailwind, not just a sustainability nice-to-have.</h2>
+    <div class="whynow-card">
+      <div class="whynow-date">APR 2024 → APR 2025</div>
+      <p>India's Time-of-Day (ToD) tariffs became mandatory for commercial &amp; industrial consumers above 10kW, then extended to all consumers with compatible smart meters — with peak-hour surcharges of roughly 10–20% over normal rates. A building that can't automatically shift load off-peak is now leaving a quantifiable cost on the table every day, not a hypothetical one.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Where SmartSense fits</div>
+    <h2>Not a first-mover claim — a clear gap to build into.</h2>
+    <p class="lede">Building energy management already has credible players. Here's honestly where each one sits, and where SmartSense is aimed.</p>
+    <div class="whynow-card" style="flex-direction:column; align-items:stretch; gap:0; padding:8px 30px;">
+      <div class="compare-row">
+        <div class="compare-bar" style="background:var(--text-faint);"></div>
+        <div class="compare-title">Global BMS incumbents</div>
+        <div class="compare-desc">Siemens Desigo, Honeywell, Schneider EcoStruxure — enterprise-grade automation, typically proprietary hardware and long implementation cycles.</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-bar" style="background:var(--teal);"></div>
+        <div class="compare-title">Indian IoT / BMS analytics</div>
+        <div class="compare-desc">Zenatix (now part of Schneider Electric), IOTomation, and similar — report 10–20% energy savings across thousands of Indian commercial sites. This validates our savings range; our differentiation is native ToD/DISCOM-aware scheduling and explicit climate-zone tuning, not monitoring alone.</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-bar" style="background:var(--amber);"></div>
+        <div class="compare-title">Manual facility management</div>
+        <div class="compare-desc">Spreadsheet-based tracking, fixed schedules, no real-time feedback — the actual state of most Indian commercial buildings today, and SmartSense's real near-term competitor.</div>
+      </div>
+    </div>
+    <p class="source-note">Savings range consistent with independently reported outcomes from deployed IoT building-energy systems in India.</p>
+  </div>
+
+  <div class="cta-banner">
+    <h2>See the dashboard in action</h2>
+    <p>Sign in once to keep your own profile, rewards, and building view.</p>
+    <a href="dashboard.html" class="btn btn-primary">Open live dashboard →</a>
+  </div>
+
+  <footer>
+    <div class="footer-brand"><div class="brand-mark">S</div>SmartSense — built for the Smart Buildings hackathon track</div>
+    <div class="disclaimer-badge">Prototype · Simulated data</div>
+  </footer>
+
+</div>
+
+<script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.48/build/spline-viewer.js" integrity="sha384-1wy5Cl0Wg236xj8wDLncg21Id9EcdM0Fa2UPGc5tdY/VfzTfZO/uh8lgRFnFlBQ1" crossorigin="anonymous"></script>
+<script>
+  const hero = document.getElementById('hero');
+  const spotlight = document.getElementById('heroSpotlight');
+  hero.addEventListener('mousemove', (e)=>{
+    const rect = hero.getBoundingClientRect();
+    spotlight.style.left = (e.clientX - rect.left - 250) + 'px';
+    spotlight.style.top = (e.clientY - rect.top - 250) + 'px';
+  });
+  const hero3d = document.getElementById('hero3d');
+  const heroFallback = document.getElementById('heroFallback');
+  try{
+    const viewer = document.createElement('spline-viewer');
+    viewer.setAttribute('url', 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode');
+    viewer.setAttribute('loading-anim-type', 'none');
+    hero3d.appendChild(viewer);
+    setTimeout(()=>{ if(!customElements.get('spline-viewer')){ viewer.style.display='none'; heroFallback.style.display='flex'; } }, 4000);
+  } catch(e){ heroFallback.style.display = 'flex'; }
+</script>
+</body>
+</html>

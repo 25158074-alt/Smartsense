@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in — SmartSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1017; --panel:rgba(22,31,43,0.75); --line:rgba(255,255,255,0.08); --line-strong:rgba(255,255,255,0.16);
+    --text:#EDF2F5; --text-dim:#8CA0AC; --text-faint:#54687A;
+    --teal:#4FE0CB; --teal-dim:rgba(79,224,203,0.14); --teal-glow:rgba(79,224,203,0.3);
+    --amber:#F5B24D; --red:#F16C61;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  a{text-decoration:none; color:inherit;}
+  body{
+    min-height:100vh;
+    background:radial-gradient(circle at 20% 10%, rgba(79,224,203,0.09), transparent 45%), radial-gradient(circle at 80% 90%, rgba(245,178,77,0.07), transparent 40%), linear-gradient(180deg, #0A1017 0%, #0D141C 100%);
+    color:var(--text); font-family:'IBM Plex Sans', sans-serif;
+    padding:32px;
+  }
+  .wrap{max-width:1200px; margin:0 auto;}
+  .site-nav{display:flex; align-items:center; justify-content:space-between; padding-bottom:22px; border-bottom:1px solid var(--line); margin-bottom:24px;}
+  .nav-brand{display:flex; align-items:center; gap:12px;}
+  .nav-brand span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; letter-spacing:0.5px;}
+  .nav-links{display:flex; gap:28px;}
+  .nav-link{font-size:13.5px; color:var(--text-dim); transition:color 0.2s ease;}
+  .nav-link:hover, .nav-link.active{color:var(--text);}
+  .nav-cta{background:linear-gradient(135deg, rgba(79,224,203,0.16), rgba(79,224,203,0.05)); border:1px solid rgba(79,224,203,0.35); color:var(--teal); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500;}
+  .auth-wrap{display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 0;}
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:34px;}
+  .brand-mark{width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg, var(--teal), var(--amber)); display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px var(--teal-glow); font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#0A1017;}
+  .brand span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px;}
+
+  .auth-card{
+    width:380px; background:var(--panel); backdrop-filter:blur(16px); border:1px solid var(--line);
+    border-radius:16px; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  }
+  .tabs{display:flex; background:rgba(255,255,255,0.04); border-radius:10px; padding:4px; margin-bottom:24px;}
+  .tab{flex:1; text-align:center; padding:9px 0; font-size:13.5px; color:var(--text-dim); border-radius:8px; cursor:pointer; transition:all 0.2s ease;}
+  .tab.active{background:var(--teal); color:#06201C; font-weight:500;}
+
+  h1{font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:600; margin-bottom:6px;}
+  .sub{color:var(--text-dim); font-size:13px; margin-bottom:24px;}
+
+  label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:7px;}
+  .field{margin-bottom:16px;}
+  input{
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--line); color:var(--text);
+    padding:11px 13px; border-radius:8px; font-size:14px; font-family:'IBM Plex Sans',sans-serif;
+    outline:none; transition:border-color 0.2s ease;
+  }
+  input:focus{border-color:var(--teal); box-shadow:0 0 0 3px rgba(79,224,203,0.12);}
+  .error-text{color:var(--red); font-size:12px; margin-top:6px; display:none;}
+
+  .btn-primary{
+    width:100%; background:var(--teal); color:#06201C; border:none; padding:12px 0; border-radius:8px;
+    font-size:14px; font-weight:600; cursor:pointer; margin-top:6px; transition:all 0.2s ease;
+  }
+  .btn-primary:hover{box-shadow:0 0 24px var(--teal-glow); transform:translateY(-1px);}
+
+  .divider{display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--text-faint); font-size:12px;}
+  .divider::before, .divider::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  .google-btn{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin-top:10px; background:#fff; color:#202124; border:1px solid #dadce0; padding:11px 0; border-radius:8px; font-size:13.5px; cursor:pointer; font-family:inherit; font-weight:500;}
+  .google-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,.24);}
+  .google-g{font-family:Arial,sans-serif; font-weight:700; font-size:16px; color:#4285f4;}
+  .guest-link{display:block; text-align:center; width:100%; background:transparent; cursor:pointer; font-size:13.5px; color:var(--text-dim); border:1px solid var(--line-strong); padding:11px 0; border-radius:8px; transition:all 0.2s ease;}
+  .guest-link:hover{border-color:var(--teal); color:var(--teal);}
+
+  .back-home{margin-top:22px; font-size:13px; color:var(--text-faint);}
+  .back-home a{color:var(--teal);}
+
+  .demo-note{margin-top:18px; font-size:11.5px; color:var(--text-faint); text-align:center; font-family:'IBM Plex Mono',monospace;}
+</style>
+  <script src="auth.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand"><div class="brand-mark">S</div><span>SMARTSENSE</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <a href="occupant.html" class="nav-link">Occupant view</a>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <a href="login.html" class="nav-cta">Log in</a>
+    <a href="login.html?mode=signup" class="nav-cta" style="background:var(--teal); color:#06201C;">Sign up</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="tabs">
+      <div class="tab active" id="tabLogin" onclick="setMode('login')">Log in</div>
+      <div class="tab" id="tabSignup" onclick="setMode('signup')">Sign up</div>
+    </div>
+
+    <h1 id="formTitle">Welcome back</h1>
+    <p class="sub" id="formSub">Log in to your facility dashboard.</p>
+
+    <form id="authForm" novalidate>
+      <div class="field" id="nameField" style="display:none;">
+        <label for="name">Full name</label>
+        <input type="text" id="name" placeholder="Priya Sharma" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="email">Work email</label>
+        <input type="email" id="email" placeholder="you@company.com" autocomplete="email">
+        <div class="error-text" id="emailError">Enter a valid email address.</div>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <div class="error-text" id="passwordError">Password must be at least 6 characters.</div>
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Log in</button>
+    </form>
+
+    <div class="divider">or</div>
+    <button type="button" class="guest-link" onclick="continueAsGuest()">Continue as guest →</button>
+    <button type="button" class="google-btn" onclick="continueWithGoogle()"><span class="google-g">G</span> Continue with Google</button>
+
+    <div class="demo-note">Prototype sign-in · profiles are saved separately on this device.<br>Google sign-in is simulated for the hackathon demo.</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  let mode = new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'login';
+  function setMode(m){
+    mode = m;
+    document.getElementById('tabLogin').classList.toggle('active', m==='login');
+    document.getElementById('tabSignup').classList.toggle('active', m==='signup');
+    document.getElementById('nameField').style.display = m==='signup' ? 'block' : 'none';
+    document.getElementById('formTitle').textContent = m==='login' ? 'Welcome back' : 'Create your account';
+    document.getElementById('formSub').textContent = m==='login' ? 'Log in to your facility dashboard.' : 'Set up access to your building dashboard.';
+    document.getElementById('submitBtn').textContent = m==='login' ? 'Log in' : 'Create account';
+    clearErrors();
+  }
+  function clearErrors(){
+    document.getElementById('emailError').style.display='none';
+    document.getElementById('passwordError').style.display='none';
+  }
+  setMode(mode);
+  document.getElementById('authForm').addEventListener('submit', function(e){
+    e.preventDefault(); clearErrors();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const name = document.getElementById('name').value.trim();
+    if(!email.includes('@') || !email.includes('.')) { document.getElementById('emailError').style.display='block'; return; }
+    if(password.length < 6) { document.getElementById('passwordError').style.display='block'; return; }
+    try { SmartSenseAuth.login(email, password, name, mode === 'signup'); SmartSenseAuth.syncLegacy(); navigateToDashboard(); }
+    catch (err) { document.getElementById('passwordError').textContent = err.message; document.getElementById('passwordError').style.display='block'; }
+  });
+  function continueAsGuest(){
+    const guest = SmartSenseAuth.login('guest@smartsense.io', 'guest123', 'Guest User', false);
+    SmartSenseAuth.syncLegacy(); navigateToDashboard();
+  }
+  function continueWithGoogle(){
+    const email = window.prompt('Enter a Gmail address to continue with Google:', 'yourname@gmail.com');
+    if(!email) return;
+    const guessed = email.split('@')[0].split(/[._-]+/).filter(Boolean).map(w => w[0].toUpperCase()+w.slice(1)).join(' ');
+    try { SmartSenseAuth.googleLogin(email, guessed); SmartSenseAuth.syncLegacy(); navigateToDashboard(); }
+    catch (err) { document.getElementById('emailError').textContent = err.message; document.getElementById('emailError').style.display='block'; }
+  }
+
+  // Works whether this page is opened on its own (normal link navigation)
+  // or embedded as a tab inside the combined SmartSense app shell (tells
+  // the parent shell to switch to the Dashboard tab instead).
+  // SEC-003 fix: target the real origin instead of '*' — safe here because
+  // this page and the shell are always served from the same origin.
+  function navigateToDashboard(){
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({ type:'smartsense-nav', target:'dashboard' }, window.location.origin);
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+  }
+</script>
+</body>
+</html>
