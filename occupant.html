@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Occupant view — SmartSense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1017; --panel:#161F2B; --panel-alt:#1C2733; --line:rgba(255,255,255,0.08);
+    --text:#EDF2F5; --text-dim:#8CA0AC; --text-faint:#54687A;
+    --teal:#4FE0CB; --teal-dim:rgba(79,224,203,0.14); --teal-glow:rgba(79,224,203,0.3);
+    --amber:#F5B24D; --amber-dim:rgba(245,178,77,0.14);
+    --green:#7EDBA3; --green-dim:rgba(126,219,163,0.14);
+    --red:#F1707A; --red-dim:rgba(241,112,122,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  a{text-decoration:none; color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
+  body{
+    min-height:100vh;
+    background:radial-gradient(circle at 20% 0%, rgba(79,224,203,0.08), transparent 45%), linear-gradient(180deg, #0A1017 0%, #0D141C 100%);
+    color:var(--text); font-family:'IBM Plex Sans', sans-serif;
+    padding:32px;
+  }
+  .wrap{max-width:1200px; margin:0 auto;}
+  .site-nav{display:flex; align-items:center; justify-content:space-between; padding-bottom:22px; border-bottom:1px solid var(--line); margin-bottom:32px;}
+  .nav-brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{width:34px; height:34px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg, var(--teal), var(--amber)); display:flex; align-items:center; justify-content:center; box-shadow:0 0 22px var(--teal-glow); font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:#0A1017;}
+  .nav-brand span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; letter-spacing:0.5px;}
+  .nav-links{display:flex; gap:28px;}
+  .nav-link{font-size:13.5px; color:var(--text-dim); transition:color 0.2s ease;}
+  .nav-link:hover, .nav-link.active{color:var(--text);}
+  .nav-cta{background:linear-gradient(135deg, rgba(79,224,203,0.16), rgba(79,224,203,0.05)); border:1px solid rgba(79,224,203,0.35); color:var(--teal); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:500;}
+  .phone-stage{display:flex; justify-content:center;}
+
+  .phone{
+    width:390px; background:#050708; border:1px solid var(--line); border-radius:36px; padding:14px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  .screen{background:linear-gradient(180deg, #0D141C, #0A1017); border-radius:26px; padding:22px 20px 26px; min-height:700px; position:relative; overflow:hidden;}
+  .notch{width:90px; height:22px; background:#050708; border-radius:0 0 14px 14px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:5;}
+
+  /* Tab panels */
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block; animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .app-header{display:flex; align-items:center; justify-content:space-between; margin:16px 0 22px;}
+  .greet .hi{font-size:13px; color:var(--text-dim);}
+  .greet .name{font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:600;}
+  .app-header .title{font-family:'Space Grotesk',sans-serif; font-size:19px; font-weight:600;}
+  .app-header .sub{font-size:12px; color:var(--text-dim); margin-top:2px;}
+  .avatar{width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, var(--teal), var(--amber)); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:#0A1017; flex-shrink:0;}
+
+  /* Score ring (Home) */
+  .score-card{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:22px; display:flex; align-items:center; gap:18px; margin-bottom:16px;}
+  .ring-wrap{position:relative; width:96px; height:96px; flex-shrink:0;}
+  .ring-value{position:absolute; inset:0; top:0; right:0; bottom:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .ring-value .num{font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; color:var(--teal);}
+  .ring-value .lbl{font-size:9px; color:var(--text-faint); letter-spacing:0.5px;}
+  .score-copy h3{font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; margin-bottom:4px;}
+  .score-copy p{font-size:12px; color:var(--text-dim); line-height:1.5;}
+
+  .badge-row{display:flex; gap:10px; margin-bottom:20px;}
+  .badge{flex:1; background:var(--panel-alt); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .badge .bicon{margin-bottom:6px; color:var(--amber);}
+  .badge .bval{font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;}
+  .badge .blbl{font-size:9.5px; color:var(--text-faint); margin-top:2px;}
+
+  .section-h{font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--text-faint); margin:22px 0 12px; font-family:'IBM Plex Mono',monospace; display:flex; justify-content:space-between; align-items:center;}
+  .section-h .count{color:var(--text-faint); text-transform:none; letter-spacing:0;}
+  .section-h:first-child{margin-top:0;}
+
+  .tip{display:flex; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px; margin-bottom:10px; align-items:flex-start;}
+  .tip-icon{width:28px; height:28px; border-radius:8px; background:var(--teal-dim); color:var(--teal); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .tip p{font-size:12.5px; line-height:1.5; color:var(--text-dim);}
+  .tip strong{color:var(--text); font-weight:500;}
+
+  .leaderboard{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:8px 16px;}
+  .lb-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .lb-row:last-child{border-bottom:none;}
+  .lb-rank{font-family:'Space Grotesk',sans-serif; font-size:13px; color:var(--text-faint); width:18px;}
+  .lb-rank.you{color:var(--teal);}
+  .lb-name{flex:1; font-size:13px;}
+  .lb-name.you{color:var(--teal); font-weight:500;}
+  .lb-pct{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--green);}
+
+  /* Rewards tab */
+  .pts-card{background:linear-gradient(135deg, rgba(245,178,77,0.14), rgba(79,224,203,0.06)); border:1px solid rgba(245,178,77,0.3); border-radius:18px; padding:20px 22px; margin-bottom:18px;}
+  .pts-card .lbl{font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
+  .pts-card .num{font-family:'Space Grotesk',sans-serif; font-size:36px; font-weight:700; color:var(--amber); margin:4px 0 6px; line-height:1;}
+  .pts-card .foot{font-size:12px; color:var(--text-dim);}
+  .pts-card .foot strong{color:var(--teal); font-weight:500;}
+
+  .reward-item{display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px; margin-bottom:10px;}
+  .reward-icon{width:36px; height:36px; border-radius:10px; background:var(--teal-dim); color:var(--teal); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .reward-body{flex:1;}
+  .reward-body .rname{font-size:13px; font-weight:500;}
+  .reward-body .rdesc{font-size:11px; color:var(--text-faint); margin-top:2px;}
+  .reward-cost{display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+  .reward-cost .rpts{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--amber);}
+  .redeem-btn{font-size:10.5px; font-weight:500; padding:5px 11px; border-radius:7px; border:1px solid rgba(79,224,203,0.35); color:var(--teal); background:var(--teal-dim);}
+  .redeem-btn.locked{border-color:var(--line); color:var(--text-faint); background:transparent;}
+
+  .badge-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;}
+  .badge-tile{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 8px; text-align:center;}
+  .badge-tile.locked{opacity:0.4;}
+  .badge-tile .bicon2{width:30px; height:30px; margin:0 auto 8px; border-radius:9px; background:var(--amber-dim); color:var(--amber); display:flex; align-items:center; justify-content:center;}
+  .badge-tile.locked .bicon2{background:var(--panel-alt); color:var(--text-faint);}
+  .badge-tile .bname{font-size:10px; color:var(--text-dim); line-height:1.3;}
+
+  .streak-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .streak-days{display:flex; gap:5px; flex:1;}
+  .streak-day{flex:1; height:26px; border-radius:6px; background:var(--panel-alt);}
+  .streak-day.on{background:var(--green); box-shadow:0 0 10px var(--green-dim);}
+  .streak-num{font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:var(--green); flex-shrink:0;}
+
+  /* Profile tab */
+  .profile-header{display:flex; flex-direction:column; align-items:center; text-align:center; margin:16px 0 22px;}
+  .avatar-lg{width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, var(--teal), var(--amber)); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; color:#0A1017; margin-bottom:10px; box-shadow:0 0 26px var(--teal-glow);}
+  .profile-header .pname{font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:600;}
+  .profile-header .prole{font-size:12px; color:var(--text-dim); margin-top:2px;}
+  .edit-link{margin-top:10px; font-size:11.5px; color:var(--teal); border:1px solid rgba(79,224,203,0.3); background:var(--teal-dim); padding:5px 14px; border-radius:20px;}
+
+  .stat-row{display:flex; gap:10px; margin-bottom:6px;}
+  .stat{flex:1; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center;}
+  .stat .snum{font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; color:var(--teal);}
+  .stat .slbl{font-size:9px; color:var(--text-faint); margin-top:2px;}
+
+  .info-list{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:2px 16px;}
+  .info-row{display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid var(--line);}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .ilbl{font-size:12.5px; color:var(--text-dim);}
+  .info-row .ival{font-size:12.5px; color:var(--text); font-family:'IBM Plex Mono',monospace;}
+
+  .toggle-list{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:2px 16px;}
+  .toggle-row{display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid var(--line);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-row .tname{font-size:12.5px;}
+  .toggle-row .tdesc{font-size:10.5px; color:var(--text-faint); margin-top:2px;}
+  .switch{width:36px; height:20px; border-radius:20px; background:var(--panel-alt); border:1px solid var(--line); position:relative; flex-shrink:0; padding:0;}
+  .switch.on{background:var(--teal-dim); border-color:rgba(79,224,203,0.4);}
+  .switch::after{content:''; position:absolute; top:1px; left:1px; width:14px; height:14px; border-radius:50%; background:var(--text-faint); transition:left .15s ease;}
+  .switch.on::after{background:var(--teal); left:17px; box-shadow:0 0 8px var(--teal-glow);}
+
+  .action-list{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:2px 16px; margin-bottom:10px;}
+  .action-row{display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); font-size:12.5px; width:100%; background:none; border-left:none; border-right:none; border-top:none; color:var(--text); text-align:left;}
+  .action-row:last-child{border-bottom:none;}
+  .action-row.danger{color:var(--red);}
+  .action-row .aicon{width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:var(--text-faint); flex-shrink:0;}
+  .action-row.danger .aicon{color:var(--red);}
+  .action-row .chev{margin-left:auto; color:var(--text-faint);}
+
+  .bottom-nav{position:absolute; bottom:0; left:0; right:0; background:rgba(10,16,23,0.9); backdrop-filter:blur(10px); border-top:1px solid var(--line); display:flex; justify-content:space-around; padding:14px 0 10px;}
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--text-faint); font-size:9.5px; background:none; border:none;}
+  .nav-item.active{color:var(--teal);}
+
+  /* Sheet / modal (used for Edit profile + More items) */
+  .sheet-overlay{position:absolute; inset:0; background:rgba(5,7,8,0.6); backdrop-filter:blur(2px); display:none; align-items:flex-end; justify-content:center; z-index:50; border-radius:26px;}
+  .sheet-overlay.open{display:flex;}
+  .sheet{width:100%; max-height:82%; overflow-y:auto; background:var(--panel); border:1px solid var(--line); border-top-left-radius:22px; border-top-right-radius:22px; padding:18px 20px 24px; animation:sheetUp .2s ease;}
+  @keyframes sheetUp{from{transform:translateY(16px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .sheet-handle{width:36px; height:4px; border-radius:3px; background:var(--line); margin:0 auto 14px;}
+  .sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .sheet-title{font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;}
+  .sheet-close{background:var(--panel-alt); border:1px solid var(--line); color:var(--text-dim); width:26px; height:26px; border-radius:50%; font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;}
+
+  .field-group{margin-bottom:14px;}
+  .field-group label{display:block; font-size:11px; color:var(--text-faint); margin-bottom:6px; font-family:'IBM Plex Mono',monospace; letter-spacing:0.4px;}
+  .field-group input{width:100%; background:var(--panel-alt); border:1px solid var(--line); border-radius:10px; padding:11px 12px; color:var(--text); font-size:13px; font-family:inherit;}
+  .field-group input:focus{outline:none; border-color:var(--teal);}
+  .field-note{font-size:10.5px; color:var(--text-faint); margin-top:5px;}
+
+  .sheet-save{width:100%; background:linear-gradient(135deg, var(--teal), #3fc7b3); color:#06201C; border:none; border-radius:10px; padding:12px; font-size:13.5px; font-weight:600; margin-top:4px;}
+
+  .hist-row{display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); font-size:12.5px;}
+  .hist-row:last-child{border-bottom:none;}
+  .hist-row .hmain{color:var(--text);}
+  .hist-row .hsub{color:var(--text-faint); font-size:10.5px; margin-top:2px;}
+  .hist-row .hval{font-family:'IBM Plex Mono',monospace; color:var(--teal); font-size:12px; text-align:right;}
+
+  .help-item{display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line);}
+  .help-item:last-child{border-bottom:none;}
+  .help-item .hicon{width:26px; height:26px; border-radius:8px; background:var(--teal-dim); color:var(--teal); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:13px;}
+  .help-item .htitle{font-size:12.5px; font-weight:500;}
+  .help-item .hdesc{font-size:11px; color:var(--text-dim); margin-top:2px; line-height:1.5;}
+  .help-cta{display:inline-block; margin-top:10px; font-size:11.5px; color:var(--teal); border:1px solid rgba(79,224,203,0.3); background:var(--teal-dim); padding:7px 14px; border-radius:20px;}
+</style>
+  <script src="auth.js"></script>
+</head>
+<body>
+<script>if (!SmartSenseAuth.guard()) { document.body.style.visibility = 'hidden'; }</script>
+<div class="wrap">
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand"><div class="brand-mark">S</div><span>SMARTSENSE</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <a href="occupant.html" class="nav-link active">Occupant view</a>
+  </div>
+  <a href="login.html" class="nav-cta" onclick="SmartSenseAuth.logout()">Log out</a>
+</nav>
+
+<div class="phone-stage">
+<div class="phone">
+  <div class="screen">
+    <div class="notch"></div>
+
+    <!-- HOME TAB -->
+    <div class="tab-panel active" id="tab-home">
+      <div class="app-header">
+        <div class="greet"><div class="hi">Good afternoon</div><div class="name" id="occupantName">Aditi Rao</div></div>
+        <div class="avatar" id="occupantAvatar">AR</div>
+      </div>
+
+      <div class="score-card">
+        <div class="ring-wrap">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none"/>
+            <circle cx="48" cy="48" r="40" stroke="#4FE0CB" stroke-width="8" fill="none"
+              stroke-dasharray="251.2" stroke-dashoffset="45" stroke-linecap="round"
+              transform="rotate(-90 48 48)" style="filter:drop-shadow(0 0 6px rgba(79,224,203,0.5));"/>
+          </svg>
+          <div class="ring-value"><div class="num">82</div><div class="lbl">SCORE</div></div>
+        </div>
+        <div class="score-copy">
+          <h3>Nice work this week</h3>
+          <p>Your zone used 14% less energy than the floor average.</p>
+        </div>
+      </div>
+
+      <div class="badge-row">
+        <div class="badge">
+          <div class="bicon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 1c1 3 4 4 4 8a4 4 0 1 1-8 0c0-1.5 1-2 1-3.5C6.5 7 8 6 9 1z" fill="currentColor"/></svg></div>
+          <div class="bval">5 days</div>
+          <div class="blbl">SAVER STREAK</div>
+        </div>
+        <div class="badge">
+          <div class="bicon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2C6 2 5 4 5 6c0 1.5.5 2.5 1.5 3.2L5 15h8l-1.5-5.8C12.5 8.5 13 7.5 13 6c0-2-1-4-4-4z" fill="currentColor"/></svg></div>
+          <div class="bval">Top 10%</div>
+          <div class="blbl">FLOOR RANK</div>
+        </div>
+        <div class="badge">
+          <div class="bicon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 5v4l3 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          <div class="bval">96%</div>
+          <div class="blbl">COMFORT</div>
+        </div>
+      </div>
+
+      <div class="section-h">Today's tips</div>
+      <div class="tip">
+        <div class="tip-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1c-2.5 0-4 1.8-4 4 0 1.5.6 2.2 1.2 3l.3.5c.3.5.5 1 .5 1.5h4c0-.5.2-1 .5-1.5l.3-.5c.6-.8 1.2-1.5 1.2-3 0-2.2-1.5-4-4-4z" fill="currentColor"/></svg></div>
+        <p><strong>Meeting room 3B</strong> is booked 2–4pm. Lights and AC will auto-start 10 minutes before.</p>
+      </div>
+      <div class="tip">
+        <div class="tip-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <p>Blinds on the west side close automatically at 3pm to cut cooling load — no action needed.</p>
+      </div>
+
+      <div class="section-h">Floor leaderboard</div>
+      <div class="leaderboard">
+        <div class="lb-row"><div class="lb-rank">1</div><div class="lb-name">Zone 4 · Design team</div><div class="lb-pct">−21%</div></div>
+        <div class="lb-row"><div class="lb-rank you">2</div><div class="lb-name you">Zone 2 · You</div><div class="lb-pct">−14%</div></div>
+        <div class="lb-row"><div class="lb-rank">3</div><div class="lb-name">Zone 1 · Sales</div><div class="lb-pct">−9%</div></div>
+        <div class="lb-row"><div class="lb-rank">4</div><div class="lb-name">Zone 3 · Engineering</div><div class="lb-pct">−4%</div></div>
+      </div>
+    </div>
+
+    <!-- REWARDS TAB -->
+    <div class="tab-panel" id="tab-rewards">
+      <div class="app-header">
+        <div>
+          <div class="title">Rewards</div>
+          <div class="sub">Earned by saving energy in Zone 2</div>
+        </div>
+        <div class="avatar" id="occupantAvatarRewards">AR</div>
+      </div>
+
+      <div class="pts-card">
+        <div class="lbl">Your balance</div>
+        <div class="num" id="pointsBalance">2,450 pts</div>
+        <div class="foot">+120 pts this week · <strong>350 pts</strong> to next tier</div>
+      </div>
+
+      <div class="section-h">Redeem <span class="count">4 available</span></div>
+
+      <div class="reward-item">
+        <div class="reward-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6h12l-1 7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1L2 6z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 6V4a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>
+        <div class="reward-body">
+          <div class="rname">Reserved parking, 1 week</div>
+          <div class="rdesc">Front-row spot near the east entrance</div>
+        </div>
+        <div class="reward-cost">
+          <div class="rpts">800 pts</div>
+          <div class="redeem-btn">Redeem</div>
+        </div>
+      </div>
+
+      <div class="reward-item">
+        <div class="reward-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6h9v4a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V6z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M12 7h1.5a1.5 1.5 0 0 1 0 3H12" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>
+        <div class="reward-body">
+          <div class="rname">Café voucher</div>
+          <div class="rdesc">₹300 credit at the ground-floor café</div>
+        </div>
+        <div class="reward-cost">
+          <div class="rpts">600 pts</div>
+          <div class="redeem-btn">Redeem</div>
+        </div>
+      </div>
+
+      <div class="reward-item">
+        <div class="reward-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2c-2 2-4 3.5-4 6.5A4 4 0 0 0 8 13a4 4 0 0 0 4-4.5C12 5.5 10 4 8 2z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>
+        <div class="reward-body">
+          <div class="rname">Desk plant</div>
+          <div class="rdesc">Delivered to Zone 2 within 3 days</div>
+        </div>
+        <div class="reward-cost">
+          <div class="rpts">450 pts</div>
+          <div class="redeem-btn">Redeem</div>
+        </div>
+      </div>
+
+      <div class="reward-item">
+        <div class="reward-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 14s-5-3.2-5-7a3 3 0 0 1 5-2.2A3 3 0 0 1 13 7c0 3.8-5 7-5 7z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>
+        <div class="reward-body">
+          <div class="rname">Plant a tree, in your name</div>
+          <div class="rdesc">Donated to the campus reforestation drive</div>
+        </div>
+        <div class="reward-cost">
+          <div class="rpts">3,000 pts</div>
+          <div class="redeem-btn locked">Locked</div>
+        </div>
+      </div>
+
+      <div class="section-h">Streak</div>
+      <div class="streak-card">
+        <div class="streak-num">5</div>
+        <div class="streak-days">
+          <div class="streak-day on"></div>
+          <div class="streak-day on"></div>
+          <div class="streak-day on"></div>
+          <div class="streak-day on"></div>
+          <div class="streak-day on"></div>
+          <div class="streak-day"></div>
+          <div class="streak-day"></div>
+        </div>
+      </div>
+
+      <div class="section-h">Badges <span class="count">3 of 8 earned</span></div>
+      <div class="badge-grid">
+        <div class="badge-tile">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1c1 3 3.5 3.5 3.5 6.5a3.5 3.5 0 1 1-7 0C4 4.5 6.5 4 7.5 1z" fill="currentColor"/></svg></div>
+          <div class="bname">Saver streak</div>
+        </div>
+        <div class="badge-tile">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M7.5 4v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>
+          <div class="bname">Early starter</div>
+        </div>
+        <div class="badge-tile">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2l1.6 3.4 3.7.4-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.4L7.5 2z" fill="currentColor"/></svg></div>
+          <div class="bname">Floor top 10%</div>
+        </div>
+        <div class="badge-tile locked">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="3" y="6.5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+          <div class="bname">30-day streak</div>
+        </div>
+        <div class="badge-tile locked">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="3" y="6.5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+          <div class="bname">Floor rank #1</div>
+        </div>
+        <div class="badge-tile locked">
+          <div class="bicon2"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="3" y="6.5" width="9" height="6" rx="1.2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+          <div class="bname">Zero-waste week</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div class="tab-panel" id="tab-profile">
+      <div class="profile-header">
+        <div class="avatar-lg" id="occupantAvatarProfile">AR</div>
+        <div class="pname" id="occupantNameProfile">Aditi Rao</div>
+        <div class="prole" id="occupantRoleProfile">Zone 2 · Design team</div>
+        <button type="button" class="edit-link" id="editProfileBtn" onclick="openEditProfile()">Edit profile</button>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="snum">82</div><div class="slbl">SCORE</div></div>
+        <div class="stat"><div class="snum">2,450</div><div class="slbl">POINTS</div></div>
+        <div class="stat"><div class="snum">5</div><div class="slbl">STREAK</div></div>
+      </div>
+
+      <div class="section-h">Account</div>
+      <div class="info-list">
+        <div class="info-row"><div class="ilbl">Email</div><div class="ival" id="occupantEmailProfile">aditi.rao@smartsense.io</div></div>
+        <div class="info-row"><div class="ilbl">Employee ID</div><div class="ival" id="occupantEmpIdProfile">EMP-1042</div></div>
+        <div class="info-row"><div class="ilbl">Desk</div><div class="ival" id="occupantDeskProfile">Zone 2 · D-14</div></div>
+        <div class="info-row"><div class="ilbl">Floor</div><div class="ival" id="occupantFloorProfile">3rd Floor</div></div>
+      </div>
+
+      <div class="section-h">Notifications</div>
+      <div class="toggle-list">
+        <div class="toggle-row">
+          <div><div class="tname">Daily tips</div><div class="tdesc">Energy-saving suggestions each morning</div></div>
+          <button class="switch on" onclick="this.classList.toggle('on')" aria-label="Toggle daily tips"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tname">Weekly summary</div><div class="tdesc">Score and leaderboard recap every Monday</div></div>
+          <button class="switch on" onclick="this.classList.toggle('on')" aria-label="Toggle weekly summary"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tname">Reward alerts</div><div class="tdesc">When new rewards unlock or expire</div></div>
+          <button class="switch" onclick="this.classList.toggle('on')" aria-label="Toggle reward alerts"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="tname">Room booking changes</div><div class="tdesc">Lights and AC auto-start notices</div></div>
+          <button class="switch on" onclick="this.classList.toggle('on')" aria-label="Toggle room booking changes"></button>
+        </div>
+      </div>
+
+      <div class="section-h">More</div>
+      <div class="action-list">
+        <button type="button" class="action-row" onclick="openMoreSheet('energy')"><div class="aicon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M7.5 5v3l2 1" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></div>Energy history<span class="chev">›</span></button>
+        <button type="button" class="action-row" onclick="openMoreSheet('desk')"><div class="aicon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 3V1.5M10 3V1.5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></div>Desk booking history<span class="chev">›</span></button>
+        <button type="button" class="action-row" onclick="openMoreSheet('help')"><div class="aicon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.5l1.4 3 3.3.4-2.4 2.3.6 3.3-2.9-1.6-2.9 1.6.6-3.3-2.4-2.3 3.3-.4 1.4-3z" stroke="currentColor" stroke-width="1.1" fill="none"/></svg></div>Help &amp; support<span class="chev">›</span></button>
+      </div>
+      <div class="action-list">
+        <a href="login.html" class="action-row danger" onclick="SmartSenseAuth.logout()"><div class="aicon"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M6 2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3M10 5l3 2.5L10 10M13 7.5H5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Log out</a>
+      </div>
+    </div>
+
+    <!-- Edit profile sheet -->
+    <div class="sheet-overlay" id="editProfileOverlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div class="sheet-title">Edit profile</div>
+          <button type="button" class="sheet-close" onclick="closeEditProfile()">✕</button>
+        </div>
+        <form id="editProfileForm" onsubmit="return saveProfile(event)">
+          <div class="field-group">
+            <label for="editName">Full name</label>
+            <input type="text" id="editName" autocomplete="name">
+          </div>
+          <div class="field-group">
+            <label for="editRole">Team / role</label>
+            <input type="text" id="editRole" placeholder="e.g. Zone 2 · Design team">
+          </div>
+          <div class="field-group">
+            <label for="editDesk">Desk</label>
+            <input type="text" id="editDesk" placeholder="e.g. Zone 2 · D-14">
+          </div>
+          <div class="field-group">
+            <label for="editFloor">Floor</label>
+            <input type="text" id="editFloor" placeholder="e.g. 3rd Floor">
+          </div>
+          <div class="field-group">
+            <label for="editEmail">Email</label>
+            <input type="email" id="editEmail" disabled>
+            <div class="field-note">Synced from your login — changed automatically when you sign in with a different account.</div>
+          </div>
+          <button type="submit" class="sheet-save">Save changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- More: detail sheet (Energy history / Desk booking history / Help & support) -->
+    <div class="sheet-overlay" id="moreOverlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div class="sheet-title" id="moreSheetTitle">Details</div>
+          <button type="button" class="sheet-close" onclick="closeMoreSheet()">✕</button>
+        </div>
+        <div id="moreSheetBody"></div>
+      </div>
+    </div>
+
+    <div style="height:70px;"></div>
+
+    <div class="bottom-nav">
+      <button class="nav-item active" data-tab="tab-home" onclick="switchTab('tab-home', this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 8l6-5 6 5v7a1 1 0 0 1-1 1h-3v-5H7v5H4a1 1 0 0 1-1-1V8z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>Home</button>
+      <button class="nav-item" data-tab="tab-rewards" onclick="switchTab('tab-rewards', this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2c-2.5 0-4 1.8-4 4 0 1.5.6 2.2 1.2 3l.3.5c.3.5.5 1 .5 1.5h4c0-.5.2-1 .5-1.5l.3-.5c.6-.8 1.2-1.5 1.2-3 0-2.2-1.5-4-4-4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>Rewards</button>
+      <button class="nav-item" data-tab="tab-profile" onclick="switchTab('tab-profile', this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M3 16c0-3 3-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>Profile</button>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+  function switchTab(tabId, btn){
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector('.screen').scrollTop = 0;
+  }
+
+  // Pulls the logged-in occupant's name + email (saved by the login page) and
+  // uses them to populate the greeting, avatar initials, and account details
+  // across Home, Rewards, and Profile tabs. Falls back to sensible defaults
+  // if no one has logged in yet.
+  function renderOccupantInfo(){
+    const user = SmartSenseAuth.current() || {};
+    const displayName = user.name || 'Guest';
+    const initials = displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('') || '?';
+
+    const nameTargets = ['occupantName', 'occupantNameProfile'];
+    const avatarTargets = ['occupantAvatar', 'occupantAvatarRewards', 'occupantAvatarProfile'];
+    nameTargets.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = displayName; });
+    avatarTargets.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
+
+    // Email: use whatever was typed on the login/signup form. If someone
+    // landed here without logging in (e.g. guest), fall back to a
+    // reasonable placeholder instead of showing stale sample data.
+    const storedEmail = user.email;
+    const emailEl = document.getElementById('occupantEmailProfile');
+    if (emailEl){
+      emailEl.textContent = (storedEmail && storedEmail.trim()) || 'guest@smartsense.io';
+    }
+
+    const roleEl = document.getElementById('occupantRoleProfile');
+    if (roleEl) roleEl.textContent = user.role || 'Zone 2 · Design team';
+
+    const deskEl = document.getElementById('occupantDeskProfile');
+    if (deskEl) deskEl.textContent = user.desk || 'Zone 2 · D-14';
+
+    const floorEl = document.getElementById('occupantFloorProfile');
+    if (floorEl) floorEl.textContent = user.floor || '3rd Floor';
+
+    const pointsEl = document.getElementById('pointsBalance');
+    if (pointsEl) pointsEl.textContent = `${(typeof user.points === 'number' ? user.points : 2450).toLocaleString('en-IN')} pts`;
+  }
+  renderOccupantInfo();
+
+  // Redeem buttons in the Rewards tab were previously non-functional (no
+  // click handler at all). Wire them up against the logged-in user's real
+  // points balance, same logic as the standalone rewards.html page.
+  document.querySelectorAll('#tab-rewards .redeem-btn:not(.locked)').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const user = SmartSenseAuth.current();
+      if (!user) return;
+      const card = btn.closest('.reward-item');
+      const pts = parseInt((card.querySelector('.rpts').textContent || '0').replace(/[^0-9]/g, ''), 10);
+      if ((user.points || 0) < pts) { btn.textContent = 'Need more pts'; return; }
+      SmartSenseAuth.updateCurrentUser({ points: user.points - pts });
+      btn.textContent = 'Redeemed';
+      btn.classList.add('locked');
+      renderOccupantInfo();
+    });
+  });
+  if (location.hash === '#profile') { const profileBtn = document.querySelector('[data-tab="tab-profile"]'); switchTab('tab-profile', profileBtn); }
+
+  // ---- Edit profile sheet ----
+  function openEditProfile(){
+    document.getElementById('editName').value = document.getElementById('occupantNameProfile').textContent.trim();
+    document.getElementById('editRole').value = document.getElementById('occupantRoleProfile').textContent.trim();
+    document.getElementById('editDesk').value = document.getElementById('occupantDeskProfile').textContent.trim();
+    document.getElementById('editFloor').value = document.getElementById('occupantFloorProfile').textContent.trim();
+    document.getElementById('editEmail').value = document.getElementById('occupantEmailProfile').textContent.trim();
+    document.getElementById('editProfileOverlay').classList.add('open');
+  }
+  function closeEditProfile(){
+    document.getElementById('editProfileOverlay').classList.remove('open');
+  }
+  function saveProfile(e){
+    e.preventDefault();
+    const name = document.getElementById('editName').value.trim();
+    const role = document.getElementById('editRole').value.trim();
+    const desk = document.getElementById('editDesk').value.trim();
+    const floor = document.getElementById('editFloor').value.trim();
+
+    const patch = {};
+    if (name) patch.name = name;
+    if (role) patch.role = role;
+    if (desk) patch.desk = desk;
+    if (floor) patch.floor = floor;
+    SmartSenseAuth.updateCurrentUser(patch);
+
+    renderOccupantInfo();
+    closeEditProfile();
+    return false;
+  }
+
+  // ---- "More" detail sheets ----
+  const moreContent = {
+    energy: {
+      title: 'Energy history',
+      html: `
+        <div class="hist-row"><div><div class="hmain">September 2026</div><div class="hsub">Month to date · score 82</div></div><div class="hval">312 kWh saved</div></div>
+        <div class="hist-row"><div><div class="hmain">August 2026</div><div class="hsub">Full month · score 79</div></div><div class="hval">428 kWh saved</div></div>
+        <div class="hist-row"><div><div class="hmain">July 2026</div><div class="hsub">Full month · score 75</div></div><div class="hval">390 kWh saved</div></div>
+        <div class="hist-row"><div><div class="hmain">June 2026</div><div class="hsub">Full month · score 71</div></div><div class="hval">355 kWh saved</div></div>
+        <div class="field-note" style="margin-top:12px;">Savings are estimated against your zone's baseline usage from before you joined the programme.</div>
+      `
+    },
+    desk: {
+      title: 'Desk booking history',
+      html: `
+        <div class="hist-row"><div><div class="hmain">Zone 2 · D-14</div><div class="hsub">Today · checked in 9:02 AM</div></div><div class="hval">Active</div></div>
+        <div class="hist-row"><div><div class="hmain">Zone 2 · D-09</div><div class="hsub">Fri, 5 Sep · 9:14 AM – 5:40 PM</div></div><div class="hval">8h 26m</div></div>
+        <div class="hist-row"><div><div class="hmain">Zone 1 · A-22</div><div class="hsub">Wed, 3 Sep · 9:05 AM – 4:50 PM</div></div><div class="hval">7h 45m</div></div>
+        <div class="hist-row"><div><div class="hmain">Zone 2 · D-14</div><div class="hsub">Mon, 1 Sep · 8:58 AM – 5:20 PM</div></div><div class="hval">8h 22m</div></div>
+        <div class="field-note" style="margin-top:12px;">Lights and AC in a booked desk's zone auto-start 10 minutes before your reserved time.</div>
+      `
+    },
+    help: {
+      title: 'Help & support',
+      html: `
+        <div class="help-item">
+          <div class="hicon">?</div>
+          <div><div class="htitle">Facilities helpdesk</div><div class="hdesc">Report issues with lights, AC, desks or badge access. Average first response time: 4 hours.</div></div>
+        </div>
+        <div class="help-item">
+          <div class="hicon">i</div>
+          <div><div class="htitle">How scoring works</div><div class="hdesc">Your score blends energy saved vs. your zone's baseline, desk check-in punctuality, and weekly engagement with tips.</div></div>
+        </div>
+        <div class="help-item">
+          <div class="hicon">!</div>
+          <div><div class="htitle">Report a problem</div><div class="hdesc">Something not adding up with your points or a booking? Send the details and we'll take a look.</div></div>
+        </div>
+        <a class="help-cta" id="helpEmailLink" href="#">Email support</a>
+      `
+    }
+  };
+  function openMoreSheet(kind){
+    const c = moreContent[kind];
+    if (!c) return;
+    document.getElementById('moreSheetTitle').textContent = c.title;
+    document.getElementById('moreSheetBody').innerHTML = c.html;
+    if (kind === 'help'){
+      const link = document.getElementById('helpEmailLink');
+      if (link) link.href = 'mailto:help@smartsense.io?subject=Support%20request';
+    }
+    document.getElementById('moreOverlay').classList.add('open');
+  }
+  function closeMoreSheet(){
+    document.getElementById('moreOverlay').classList.remove('open');
+  }
+</script>
+
+</body>
+</html>

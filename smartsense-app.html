@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartSense — Building Energy Intelligence</title>
+<style>
+  :root{
+    --bg:#0A1017; --panel:#161F2B; --line:rgba(255,255,255,0.08);
+    --text:#EDF2F5; --text-dim:#8CA0AC; --text-faint:#54687A;
+    --teal:#4FE0CB; --teal-dim:rgba(79,224,203,0.14); --teal-glow:rgba(79,224,203,0.3);
+    --amber:#F5B24D;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:linear-gradient(180deg, #0A1017 0%, #0D141C 100%);
+    color:var(--text); font-family:'IBM Plex Sans', system-ui, sans-serif;
+    display:flex; flex-direction:column;
+  }
+  a{text-decoration:none; color:inherit;}
+
+  /* Shell top bar — this is the ONE nav for the whole app */
+  .shell-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px; border-bottom:1px solid var(--line);
+    background:rgba(10,16,23,0.85); backdrop-filter:blur(10px);
+    flex-shrink:0; position:relative; z-index:10;
+  }
+  .shell-brand{display:flex; align-items:center; gap:10px;}
+  .shell-mark{
+    width:30px; height:30px; border-radius:8px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--teal), var(--amber));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 18px var(--teal-glow);
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:#0A1017;
+  }
+  .shell-brand span{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; letter-spacing:0.5px;}
+  .shell-tabs{display:flex; gap:6px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:4px;}
+  .shell-tab{
+    font-size:13px; color:var(--text-dim); padding:8px 16px; border-radius:7px; cursor:pointer;
+    font-weight:500; transition:all 0.15s ease; border:none; background:transparent; font-family:inherit;
+  }
+  .shell-tab:hover{color:var(--text);}
+  .shell-tab.active{background:var(--teal); color:#06201C;}
+  .shell-status{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;}
+  .live-dot{width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); animation:blink 2s ease-in-out infinite; flex-shrink:0;}
+  @keyframes blink{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+
+  /* Frame stage */
+  .stage{flex:1; position:relative; min-height:0;}
+  .view-frame{
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+    opacity:0; pointer-events:none; transition:opacity 0.15s ease;
+  }
+  .view-frame.active{opacity:1; pointer-events:auto;}
+
+  @media (max-width:760px){
+    .shell-brand span{display:none;}
+    .shell-status{display:none;}
+    .shell-tab{padding:8px 10px; font-size:12px;}
+  }
+</style>
+  <script src="auth.js"></script>
+</head>
+<body>
+
+<nav class="shell-nav">
+  <div class="shell-brand"><div class="shell-mark">S</div><span>SMARTSENSE</span></div>
+  <div class="shell-tabs" id="shellTabs">
+    <button class="shell-tab" data-view="home">Home</button>
+    <button class="shell-tab" data-view="dashboard">Dashboard</button>
+    <button class="shell-tab" data-view="occupant">Occupant view</button>
+    <button class="shell-tab active" data-view="login">Log in</button>
+  </div>
+  <div class="shell-status"><span class="live-dot"></span>All views combined · one app</div>
+</nav>
+
+<div class="stage">
+  <iframe class="view-frame" id="frame-home" data-view="home" src="index.html"></iframe>
+  <iframe class="view-frame" id="frame-dashboard" data-view="dashboard" src="dashboard.html"></iframe>
+  <iframe class="view-frame" id="frame-occupant" data-view="occupant" src="occupant.html"></iframe>
+  <iframe class="view-frame active" id="frame-login" data-view="login" src="login.html"></iframe>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.shell-tab');
+  const frames = document.querySelectorAll('.view-frame');
+
+  // Only the authenticated views require a session. Home (like index.html
+  // on its own) must stay reachable without logging in, otherwise no one
+  // can preview the app without an account.
+  const PROTECTED_VIEWS = ['dashboard', 'occupant'];
+  function switchView(view){
+    if (PROTECTED_VIEWS.includes(view) && !SmartSenseAuth.isLoggedIn()) view = 'login';
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.view === view));
+    frames.forEach(f => f.classList.toggle('active', f.dataset.view === view));
+
+    // The occupant view reads the logged-in name from localStorage once on
+    // load, so refresh it every time it's opened to reflect the latest login.
+    if(view === 'occupant'){
+      const f = document.getElementById('frame-occupant');
+      f.contentWindow.location.reload();
+    }
+  }
+
+  if (SmartSenseAuth.isLoggedIn()) switchView('home');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => switchView(tab.dataset.view));
+  });
+
+  // Each embedded page ships its own top nav (for when it's opened on its
+  // own outside the shell). Inside the shell, the shell nav above is the
+  // only one that should be visible, so hide the inner one once each frame
+  // loads — this also stops inner nav links from navigating a frame on
+  // their own and getting out of sync with the shell's active tab.
+  frames.forEach(frame => {
+    frame.addEventListener('load', () => {
+      try{
+        const doc = frame.contentDocument;
+        const innerNav = doc.querySelector('nav.site-nav') || doc.querySelector('nav');
+        if(innerNav) innerNav.style.display = 'none';
+      } catch(err){ /* cross-origin fallback: leave inner nav as-is */ }
+    });
+  });
+
+  // The login page posts this message instead of navigating itself when
+  // it detects it's running inside this shell (see login.html).
+  // SEC-001 fix: only accept messages from our own origin, since this
+  // listener triggers a UI action (tab switch) and should not respond
+  // to arbitrary pages that might obtain a reference to this window.
+  window.addEventListener('message', (e) => {
+    if(e.origin !== window.location.origin) return;
+    if(e.data && e.data.type === 'smartsense-nav' && e.data.target){
+      switchView(e.data.target);
+    }
+  });
+</script>
+
+</body>
+</html>
